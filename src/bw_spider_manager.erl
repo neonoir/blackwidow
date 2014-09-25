@@ -13,7 +13,7 @@ init(StartUrlList, Domain, Config, MFA, MaxWorkers) ->
 
 
 assign_url() ->
-    gen_spider_worker:assign_url(Worker, Url).
+    gen_spider:assign_url(Worker, Url).
    
 -spec assign_urls(workers(), workers(), urls()).
 assign_urls(_, _, []) ->
@@ -25,7 +25,7 @@ assign_urls([Worker | Workers], OrigWorkers, [Url | Urls]) ->
     assign_urls(Workers, OrigWorkers, Urls).
 
 spawn_worker(MFA) ->
-    gen_spider_worker:start(MFA).
+    gen_spider:start(MFA).
 
 manager_loop(Workers,Domain,StartUrlList) ->
     Urls = [ {Url, Visited} || {Url, Visited} <- StartUrlList, Visited == not_visited ],
