@@ -49,4 +49,7 @@ domain(Module) ->
 max_workers(Module) ->
     Module:max_workers().
 
-	    
+spider_name(Module) ->
+    Module:spider_name().
+    
+    
