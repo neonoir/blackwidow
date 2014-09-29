@@ -21,20 +21,26 @@ init(SpiderModule, PipeLineModules) ->
     IdleWorkers = [],
     BusyWorkers = [],
     empty_mailbox(),
-    manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules).
+    manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers).
 
-manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules) ->
+-spec manager_loop(workers(), workers(), urls(), urls(), [module()], integer()) ->
+    ok.
+manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers) ->
 
     {IdleWorkers2, NewBusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
 
-    receive 
-	{Worker, {result, Result}, {urls, Urls}} ->
-	    process_result(Result, PipeLineModules),
-
-	    Urls2 = remove_duplicate_urls(Urls, VisitedUrls),
-	    manager_loop(IdleWorkers2 ++ [Worker], BusyWorkers2, UnvisitedUrls2 ++ Urls2, VisitedUrls2, PipeLineModules);
-	{self(), {new_worker, NewWorkerPid}} ->
-	    manager_loop(IdleWorkers2 ++ [NewWorkerPid], BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules)
+    case {length(IdleWorkers), UnvisitedUrls} of
+	{MaxWorkers, []} ->
+	    ok;
+	_ -> 
+	    receive 
+		{Worker, {result, Result}, {urls, Urls}} ->
+		    process_result(Result, PipeLineModules),
+		    Urls2 = remove_duplicate_urls(Urls, VisitedUrls),
+		    manager_loop(IdleWorkers2 ++ [Worker], BusyWorkers2, UnvisitedUrls2 ++ Urls2, VisitedUrls2, PipeLineModules);
+		{self(), {new_worker, NewWorkerPid}} ->
+		    manager_loop(IdleWorkers2 ++ [NewWorkerPid], BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules)
+	    end
     end.
 
 -spec assign_url(worker(), url()).
