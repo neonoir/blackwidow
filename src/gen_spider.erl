@@ -11,16 +11,22 @@
 -callback max_workers(Module :: module()) ->
     integer().
 
+start_link(Module, ManagerPid) ->
+    Pid = spawn_link(?MODULE, worker_loop, [Module]),
+    ManagerPid ! {new_worker, Pid},
+    {ok, Pid}.
 
-start(Module) ->
-    spawn(?MODULE, worker_loop, [Module]).
+start(Module, ManagerPid) ->
+    Pid = spawn(?MODULE, worker_loop, [Module]),
+    ManagerPid ! {new_worker, Pid},
+    {ok, Pid}.		  
 
-worker_loop(Module) ->
+worker_loop(Module, ManagerPid) ->
     receive
-	{From, {assign_url, Url}} ->
+	{ManagerPid, {assign_url, Url}} ->
 	    Response = fetch_url(Url),
-	    From ! {urls, extract_urls(Response)},
-	    From ! {results, process_response(Module, Response)}
+	    ManagerPid ! {urls, extract_urls(Response)},
+	    ManagerPid ! {results, process_response(Module, Response)}
     end.
 
 fetch_url(Module, Url) ->
@@ -51,5 +57,6 @@ max_workers(Module) ->
 
 spider_name(Module) ->
     Module:spider_name().
+
     
     
