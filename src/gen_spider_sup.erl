@@ -22,7 +22,7 @@ init([]) ->
 	       permanent, brutal_kill, worker, [gen_spider]},
     Children = [Element],
     RestartStrategy = {one_for_one, 0, 1},
-    {ok, RestartStrategy, Children}.
+    {ok, {RestartStrategy, Children}}.
     
      
 	       

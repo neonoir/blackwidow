@@ -2,7 +2,7 @@
 
 -type worker() :: pid().
 -type workers() :: [worker()].
--type url() :: {string(), visited|not_visited}.
+-type url() :: string().
 -type urls() :: [url()].
 
 -include("blackwidow.hrl").

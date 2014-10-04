@@ -1,5 +1,7 @@
 -module(gen_spider_pipeline).
 
+-export([handle_process_result/2]).
+
 -callback process_result(Result :: term()) ->
     term().
 
