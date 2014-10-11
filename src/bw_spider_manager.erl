@@ -6,10 +6,13 @@
 	]).
 
 start(SpiderModule, PipeLineModules) ->
-    spawn(?MODULE, init, [SpiderModule, PipeLineModules]).    
+    Pid = spawn(?MODULE, init, [SpiderModule, PipeLineModules]),
+    {ok, Pid}.
 
 start_link(SpiderModule, PipeLineModules) ->
-    spawn_link(?MODULE, init, [SpiderModule, PipeLineModules]).
+    Pid = spawn_link(?MODULE, init, [SpiderModule, PipeLineModules]),
+    io:format("* * * * * * * * * *~p~n", [{ok, Pid}]),
+    {ok, Pid}.
 
 -spec init(module(), [module()]) ->
     ok.
@@ -17,15 +20,17 @@ init(SpiderModule, PipeLineModules) ->
     UnvisitedUrls = gen_spider:start_urls(SpiderModule),
     VisitedUrls = [],
     MaxWorkers = gen_spider:max_workers(SpiderModule),
-    [ gen_spider_sup:start_child(self()) || _ <- lists:seq(1, MaxWorkers) ],
+    [ gen_spider_sup:start_child(SpiderModule, self()) || _ <- lists:seq(1, MaxWorkers) ],
     IdleWorkers = [],
     BusyWorkers = [],
+    io:format("IW\t BW\t NewUrlL\t OldUrl\t PMOD\t MXW ~n"),
     manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers).
 
 -spec manager_loop(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls(), [module()], integer()) ->
     ok.
 manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers) ->
-    Pid = self(),
+    io:format("~p ~n", [{IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers}]),
+
     {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
 
     case {length(IdleWorkers), UnvisitedUrls} of
@@ -37,7 +42,7 @@ manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModul
 		    ok = process_result(Result, PipeLineModules),
 		    Urls2 = remove_duplicate_urls(Urls, VisitedUrls),
 		    manager_loop(IdleWorkers2 ++ [Worker], BusyWorkers2, UnvisitedUrls2 ++ Urls2, VisitedUrls2, PipeLineModules, MaxWorkers);
-		{Pid, {new_worker, NewWorkerPid}} ->
+		{new_worker, NewWorkerPid} ->
 		    manager_loop(IdleWorkers2 ++ [NewWorkerPid], BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules, MaxWorkers)
 	    end
     end.

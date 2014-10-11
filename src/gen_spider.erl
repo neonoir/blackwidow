@@ -17,20 +17,16 @@
 
 -callback spider_name() ->
     string().
--callback domain(Module :: module()) ->
+-callback domain() ->
     string().
--callback start_urls(Module :: module()) ->
+-callback start_urls() ->
     [blackwidow:url()].
--callback max_workers(Module :: module()) ->
+-callback max_workers() ->
     integer().
 % -callback is_url_valid(Url :: blackwidow:url()) ->
 %     boolean().
 -callback process_response(Response :: blackwidow:response()) ->
-    {pid(), 
-     { 
-	  {result, Result :: term()}, 
-	  {urls, Url :: blackwidow:urls()} 
-	 } }.
+    {{result, Result :: term()}, {urls, Url :: blackwidow:urls()}}.
 
 
 start_link(Module, ManagerPid) ->
@@ -52,7 +48,7 @@ worker_loop(Module, ManagerPid) ->
     end.
 
 fetch_url(Url) ->
-    #bw_response{}.
+    #bw_response{url=Url}.
 
 
 % extract_urls(Response) ->
@@ -65,15 +61,23 @@ fetch_url(Url) ->
 process_response(Module, Response) ->
     Module:process_response(Response).
 
+-spec start_urls(module()) ->
+    blackwidow:urls().
 start_urls(Module) ->
     Module:start_urls().
 
+-spec domain(module()) ->
+    string().
 domain(Module) ->
     Module:domain().
 
+-spec max_workers(module()) ->
+    integer().
 max_workers(Module) ->
     Module:max_workers().
 
+-spec spider_name(module()) ->
+    string().
 spider_name(Module) ->
     Module:spider_name().
 
