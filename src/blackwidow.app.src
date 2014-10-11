@@ -1,0 +1,12 @@
+{application, blackwidow,
+ [
+  {description, ""},
+  {vsn, ""},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { blackwidow_app, []}},
+  {env, []}
+ ]}.
