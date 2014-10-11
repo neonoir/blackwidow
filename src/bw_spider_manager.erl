@@ -36,10 +36,10 @@ manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModul
     case {length(IdleWorkers), UnvisitedUrls} of
 	{MaxWorkers, []} ->
 	    ok;
-	_ -> 
-	    receive 
+	_ ->
+	    receive
 		{Worker, {{result, Result}, {urls, Urls}}} ->
-		    ok = process_result(Result, PipeLineModules),
+		    process_result(Result, PipeLineModules),
 		    Urls2 = remove_duplicate_urls(Urls, VisitedUrls),
 		    manager_loop(IdleWorkers2 ++ [Worker], BusyWorkers2, UnvisitedUrls2 ++ Urls2, VisitedUrls2, PipeLineModules, MaxWorkers);
 		{new_worker, NewWorkerPid} ->
@@ -52,7 +52,7 @@ manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModul
 assign_url(Worker, Url) ->
     Worker ! {self(), {assign_url, Url}}.
 
--spec assign_urls(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls()) -> 
+-spec assign_urls(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls()) ->
     {blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls()}.
 
 assign_urls([], BusyWorkers, UnvisitedUrls, VisitedUrls) ->
@@ -68,7 +68,7 @@ assign_urls([Worker|IdleWorkers], BusyWorkers, [Url|UnvisitedUrls], VisitedUrls)
 -spec remove_duplicate_urls(blackwidow:urls(), blackwidow:urls()) ->
     [blackwidow:urls()].
 remove_duplicate_urls(NewUrls, VisitedUrls) ->
-    case NewUrls of 
+    case NewUrls of
 	[] ->
 	    [];
 	_ ->
@@ -83,4 +83,3 @@ process_result(Result, PipeLineModules) ->
 	_ ->
 	    spawn(gen_spider_pipeline, handle_process_result, [Result, PipeLineModules])
     end.
-
