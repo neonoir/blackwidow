@@ -23,8 +23,6 @@
     [blackwidow:url()].
 -callback max_workers() ->
     integer().
-% -callback is_url_valid(Url :: blackwidow:url()) ->
-%     boolean().
 -callback process_response(Response :: blackwidow:response()) ->
     {{result, Result :: term()}, {urls, Url :: blackwidow:urls()}}.
 
@@ -40,11 +38,11 @@ start(Module, ManagerPid) ->
     {ok, Pid}.		  
 
 worker_loop(Module, ManagerPid) ->
-    
     receive
 	{ManagerPid, {assign_url, Url}} ->
 	    Response = fetch_url(Url),
-	    ManagerPid ! {self(), process_response(Module, Response)}
+	    ManagerPid ! {self(), process_response(Module, Response)},
+	    worker_loop(Module, ManagerPid)
     end.
 
 fetch_url(Url) ->

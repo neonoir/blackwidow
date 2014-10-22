@@ -15,7 +15,7 @@ init({SpiderModule, PipeLineModules}) ->
     GenSpiderSup = {gen_spider_sup, {gen_spider_sup, start_link, []},
 	       permanent, brutal_kill, supervisor, [gen_spider]},
     SpiderManager = {bw_spider_manager, {bw_spider_manager, start_link, [SpiderModule, PipeLineModules]},
-		     permanent, brutal_kill, worker, [bw_spider_manager]},
+		     transient, brutal_kill, worker, [bw_spider_manager]},
     Children = [GenSpiderSup, SpiderManager],
     RestartStrategy = {one_for_one, 10, 5 * 3600},
     {ok, {RestartStrategy, Children}}.

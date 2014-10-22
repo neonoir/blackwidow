@@ -20,11 +20,11 @@ domain() ->
     "example.com".
 
 start_urls() ->
-    ["1"].
+    [1003].
 
 max_workers() ->
     4.
 %
 process_response(#bw_response{url=Url}) ->
-    {{result, Url}, {urls, [random:uniform(100) || _ <- lists:seq(1,5) ]}		 }.
+    { {result, Url}, {urls, [ random:uniform(5) + 1000  || _ <- lists:seq(1,10) ]} }.
 
