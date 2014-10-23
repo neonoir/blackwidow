@@ -20,11 +20,27 @@ init(SpiderModule, PipeLineModules) ->
     VisitedUrls = [],
     MaxWorkers = gen_spider:max_workers(SpiderModule),
     [ gen_spider_sup:start_child(SpiderModule, self()) || _ <- lists:seq(1, MaxWorkers) ],
-    IdleWorkers = [],
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    IdleWorkers = get_workers(MaxWorkers),
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     BusyWorkers = [],
     {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
     manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers).
     % manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers).
+
+
+get_workers(MaxWorkers) ->
+    get_workers(MaxWorkers, []).
+
+get_workers(0, Workers) ->
+    Workers;
+get_workers(MaxWorkers, Workers) ->
+    receive 
+	{new_worker, NewWorker} ->
+	    Workers2 = Workers ++ [NewWorker],
+	    get_workers(MaxWorkers -1, Workers2)
+    end.
+    
 
 -spec manager_loop(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls(), [module()], integer()) ->
     ok.
