@@ -11,7 +11,6 @@ start(SpiderModule, PipeLineModules) ->
 
 start_link(SpiderModule, PipeLineModules) ->
     Pid = spawn_link(?MODULE, init, [SpiderModule, PipeLineModules]),
-    io:format("* * * * * * * * * *~p~n", [{ok, Pid}]),
     {ok, Pid}.
 
 -spec init(module(), [module()]) ->
@@ -23,38 +22,47 @@ init(SpiderModule, PipeLineModules) ->
     [ gen_spider_sup:start_child(SpiderModule, self()) || _ <- lists:seq(1, MaxWorkers) ],
     IdleWorkers = [],
     BusyWorkers = [],
-    % {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
-    % manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers).
-    manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers).
+    {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
+    manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers).
+    % manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers).
 
 -spec manager_loop(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls(), [module()], integer()) ->
     ok.
 manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModules, MaxWorkers) ->
 
-    {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
+    % {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = assign_urls(IdleWorkers, BusyWorkers,  UnvisitedUrls, VisitedUrls),
 
     case {length(IdleWorkers), UnvisitedUrls} of
 	{MaxWorkers, []} ->
-	    io:format("[CRAWL FINISHED]~n~nNumber of urls crawled: ~p ~n", [length(VisitedUrls)]),
+	    io:format("~n[CRAWL FINISHED]~n~nNumber of urls crawled: ~p ~n", [length(VisitedUrls)]),
 	    io:get_line("_____NEXT"),
 	    ok;
 	_ ->
 	    receive
 		{Worker, {{result, Result}, {urls, Urls}}} ->
-		    % io:format("LEN : ~p URLS : ~p~n", [length(UnvisitedUrls), UnvisitedUrls]),
+		    io:format("~n[ RESULT ] ~p~n", [Worker]),
 		    process_result(Result, PipeLineModules),
-		    Urls2 = remove_duplicate_urls(lists:usort(Urls), VisitedUrls2),
-		    io:format("Urls\t Urls2\t UnvisitedUrls2\t VisitedUrls2 ~n"),
-		    io:format("~p~n", [{Urls, Urls2, UnvisitedUrls2, VisitedUrls2}]),
-		    manager_loop(IdleWorkers2 ++ [Worker], BusyWorkers2, UnvisitedUrls2 ++ Urls2, VisitedUrls2, PipeLineModules, MaxWorkers);
-		{new_worker, NewWorkerPid} ->
-		    manager_loop(IdleWorkers2 ++ [NewWorkerPid], BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules, MaxWorkers)
+		    Urls2 = remove_duplicate_urls(lists:usort(Urls), VisitedUrls),
+		    {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = 
+			assign_urls(IdleWorkers ++ [Worker], BusyWorkers,  UnvisitedUrls ++ Urls2, VisitedUrls),
+		    io:format("Urls\t Urls2\t UnvisitedUrls\t UnvisitedUrls2\t VisitedUrls\t VisitedUrls2 ~n"),
+		    io:format("~p~n", [{Urls, Urls2, UnvisitedUrls, UnvisitedUrls2, VisitedUrls, VisitedUrls2}]),
+		    manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers);
+		{new_worker, NewWorker} ->
+		    io:format("~n[ WORKER ] ~p~n", [NewWorker]),
+		    {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = 
+			assign_urls(IdleWorkers ++ [NewWorker], BusyWorkers,  UnvisitedUrls, VisitedUrls),
+		    io:format("UnvisitedUrls\t UnvisitedUrls2\t VisitedUrls\t VisitedUrls2 ~n"),
+		    io:format("~p~n", [{UnvisitedUrls, UnvisitedUrls2, VisitedUrls, VisitedUrls2}]),
+
+		    manager_loop(IdleWorkers2, BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules, MaxWorkers)
 	    end
     end.
 
 -spec assign_url(blackwidow:worker(), blackwidow:url()) ->
     {blackwidow:worker(), {assign_url, blackwidow:url()}}.
 assign_url(Worker, Url) ->
+    io:format("~n[ ASSIGNED URL ~p TO ~p ]~n", [Url, Worker]),
     Worker ! {self(), {assign_url, Url}}.
 
 -spec assign_urls(blackwidow:workers(), blackwidow:workers(), blackwidow:urls(), blackwidow:urls()) ->
