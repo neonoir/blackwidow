@@ -1,0 +1,8 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -pa ebin debug verbose
+main([Crawler | Pipelines]) ->
+    C = list_to_atom(Crawler),
+    P = [ list_to_atom(Pipeline) || Pipeline <- Pipelines ],
+    bw_spider_manager:start_link(C, P),
+    timer:sleep(infinity).
