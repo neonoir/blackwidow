@@ -62,15 +62,7 @@ manager_loop(IdleWorkers, BusyWorkers, UnvisitedUrls, VisitedUrls, PipeLineModul
 			assign_urls(IdleWorkers ++ [Worker], BusyWorkers,  UnvisitedUrls ++ Urls2, VisitedUrls),
 		    io:format("Urls\t Urls2\t UnvisitedUrls\t UnvisitedUrls2\t VisitedUrls\t VisitedUrls2 ~n"),
 		    io:format("~p~n", [{Urls, Urls2, UnvisitedUrls, UnvisitedUrls2, VisitedUrls, VisitedUrls2}]),
-		    manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers);
-		{new_worker, NewWorker} ->
-		    io:format("~n[ WORKER ] ~p~n", [NewWorker]),
-		    {IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2} = 
-			assign_urls(IdleWorkers ++ [NewWorker], BusyWorkers,  UnvisitedUrls, VisitedUrls),
-		    io:format("UnvisitedUrls\t UnvisitedUrls2\t VisitedUrls\t VisitedUrls2 ~n"),
-		    io:format("~p~n", [{UnvisitedUrls, UnvisitedUrls2, VisitedUrls, VisitedUrls2}]),
-
-		    manager_loop(IdleWorkers2, BusyWorkers2, VisitedUrls2, UnvisitedUrls2, PipeLineModules, MaxWorkers)
+		    manager_loop(IdleWorkers2, BusyWorkers2, UnvisitedUrls2, VisitedUrls2, PipeLineModules, MaxWorkers)
 	    end
     end.
 
