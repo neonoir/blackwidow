@@ -5,5 +5,5 @@
 -export([process_result/1]).
 
 process_result(Result) ->
-    % io:format("[pipeline output] ~p~n", [Result]).
-    ok.
+    io:format("[pipeline output] ~p~n", [Result]).
+    % ok.
