@@ -20,11 +20,18 @@ domain() ->
     "example.com".
 
 start_urls() ->
-    [1003].
+    ["/start/"].
 
 max_workers() ->
     4.
 %
 process_response(#bw_response{url=Url}) ->
-    { {result, Url}, {urls, [ random:uniform(10) + 1000  || _ <- lists:seq(1,10) ]} }.
-
+    % { {result, Url}, {urls, [ random:uniform(10) + 1000  || _ <- lists:seq(1,10) ]} }.
+    LenParts = length(string:tokens(Url, "/")),
+    p(Url, LenParts).
+p(Url, 4) ->
+    { {result, Url}, {urls, []} };
+p(Url, _) ->
+    { {result, Url}, 
+      {urls, [ Url ++ X  || X <- ["aaaa/", "bbbb/", "cccc/", "dddd/"]]}}.
+    

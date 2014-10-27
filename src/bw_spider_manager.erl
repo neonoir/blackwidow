@@ -57,12 +57,11 @@ get_workers(MaxWorkers, Workers) ->
 loop(IdleWorkers, _, [], OldUrls, _, MaxWorkers)
   when length(IdleWorkers) =:= MaxWorkers ->
     io:format("~n[CRAWL FINISHED]~n~nNumber of urls crawled: ~p ~n", [length(OldUrls)]),
-    io:get_line("_____NEXT"),
     ok;
 loop(IdleWorkers, BusyWorkers, NewUrls, OldUrls, PipeLineModules, MaxWorkers) ->
     receive
         {Worker, {{result, Result}, {urls, Urls}}} ->
-            io:format("~n[ RESULT ] ~p~n", [Worker]),
+            % io:format("~n[ RESULT ] ~p~n", [Worker]),
             process_result(Result, PipeLineModules),
             {IdleWorkers1, BusyWorkers1, NewUrls1, OldUrls1} =
                 assign_urls(Worker, IdleWorkers, BusyWorkers, Urls, NewUrls, OldUrls),
@@ -72,7 +71,7 @@ loop(IdleWorkers, BusyWorkers, NewUrls, OldUrls, PipeLineModules, MaxWorkers) ->
 
 -spec assign_url(worker(), url()) -> {worker(), {assign_url, url()}}.
 assign_url(Worker, Url) ->
-    io:format("~n[ ASSIGNED URL ~p TO ~p ]~n", [Url, Worker]),
+    % io:format("~n[ ASSIGNED URL ~p TO ~p ]~n", [Url, Worker]),
     Worker ! {self(), {assign_url, Url}}.
 
 -spec assign_urls(worker(), workers(), workers(), urls(), urls(), urls()) ->

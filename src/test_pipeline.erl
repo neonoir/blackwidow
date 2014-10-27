@@ -6,4 +6,4 @@
 
 process_result(Result) ->
     io:format("[pipeline output] ~p~n", [Result]).
-    % ok.
+
