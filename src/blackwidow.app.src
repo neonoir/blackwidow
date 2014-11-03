@@ -1,12 +1,13 @@
 {application, blackwidow,
  [
-  {description, ""},
+  {description, "Blackwidow - Erlang Scraping and Web Crawling Framework"},
   {vsn, ""},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+		  hackney
                  ]},
-  {mod, { blackwidow_app, []}},
+  {mod, { bw_app, []}},
   {env, []}
  ]}.
